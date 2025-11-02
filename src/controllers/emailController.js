@@ -93,23 +93,44 @@ async function registerUser(req, res) {
 
     // TODO: Save to database if needed
 
-    // Send registration notification email
-    await emailService.sendRegistrationEmail({
-      name,
-      email,
-      CompanyName: finalCompanyName,
-      MobileNumber: finalMobileNumber,
-      Password: finalPassword,
-    });
+    // Send registration notification email (with timeout)
+    let emailSent = false;
+    let emailError = null;
+    
+    try {
+      // Set timeout for email sending (10 seconds)
+      const emailPromise = emailService.sendRegistrationEmail({
+        name,
+        email,
+        CompanyName: finalCompanyName,
+        MobileNumber: finalMobileNumber,
+        Password: finalPassword,
+      });
+      
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("Email sending timeout after 10 seconds")), 10000)
+      );
+      
+      await Promise.race([emailPromise, timeoutPromise]);
+      emailSent = true;
+    } catch (emailErr) {
+      emailError = emailErr.message;
+      console.error("Email sending failed:", emailErr);
+    }
 
+    // Always respond, even if email failed
     res.json({
-      message: "Registration successful! Email sent.",
+      message: emailSent 
+        ? "Registration successful! Email sent." 
+        : "Registration successful, but email could not be sent.",
       user: {
         name,
         email,
         CompanyName: finalCompanyName,
         MobileNumber: finalMobileNumber,
       },
+      emailSent,
+      ...(emailError && { emailError: emailError }),
     });
   } catch (error) {
     console.error("Error during registration:", error);

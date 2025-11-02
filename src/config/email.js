@@ -15,9 +15,13 @@ const transporter = nodemailer.createTransport({
     user: "dummy",
     pass: "dummy",
   },
-  connectionTimeout: 5000, // 5 seconds timeout
+  connectionTimeout: 10000, // 10 seconds timeout
   greetingTimeout: 5000,
-  socketTimeout: 5000,
+  socketTimeout: 10000,
+  // Don't verify connection on startup - verify on first use
+  tls: {
+    rejectUnauthorized: false
+  }
 });
 
 if (!hasEmailConfig) {

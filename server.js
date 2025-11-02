@@ -26,9 +26,22 @@ app.use(cors({
 // Handle preflight OPTIONS requests
 app.options("*", cors());
 
-// Body parser middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Body parser middleware with size limits
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Request timeout middleware (30 seconds)
+app.use((req, res, next) => {
+  req.setTimeout(30000, () => {
+    if (!res.headersSent) {
+      res.status(408).json({
+        error: "Request timeout",
+        message: "Request took too long to process"
+      });
+    }
+  });
+  next();
+});
 
 // Logging middleware for debugging
 app.use((req, res, next) => {
