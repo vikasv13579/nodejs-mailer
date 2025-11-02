@@ -98,7 +98,7 @@ async function registerUser(req, res) {
     let emailError = null;
     
     try {
-      // Set timeout for email sending (10 seconds)
+      // Set timeout for email sending (15 seconds to match transporter timeout)
       const emailPromise = emailService.sendRegistrationEmail({
         name,
         email,
@@ -108,7 +108,7 @@ async function registerUser(req, res) {
       });
       
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error("Email sending timeout after 10 seconds")), 10000)
+        setTimeout(() => reject(new Error("Email sending timeout after 15 seconds. Render free tier may block SMTP connections.")), 15000)
       );
       
       await Promise.race([emailPromise, timeoutPromise]);

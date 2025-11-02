@@ -3,11 +3,10 @@ const nodemailer = require("nodemailer");
 // Check if email credentials are set
 const hasEmailConfig = process.env.EMAIL_USER && process.env.EMAIL_PASS;
 
-// Create and export email transporter (even if credentials missing - won't block startup)
+// Create and export email transporter
+// Render free tier often blocks port 587, so we use port 465 with SSL
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
+  service: 'gmail', // Use service instead of host/port - more reliable
   auth: hasEmailConfig ? {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
@@ -15,12 +14,15 @@ const transporter = nodemailer.createTransport({
     user: "dummy",
     pass: "dummy",
   },
-  connectionTimeout: 10000, // 10 seconds timeout
-  greetingTimeout: 5000,
-  socketTimeout: 10000,
-  // Don't verify connection on startup - verify on first use
+  // Connection settings optimized for cloud hosting
+  connectionTimeout: 15000,
+  greetingTimeout: 10000,
+  socketTimeout: 15000,
+  pool: true,
+  maxConnections: 1,
   tls: {
-    rejectUnauthorized: false
+    rejectUnauthorized: false,
+    minVersion: 'TLSv1.2'
   }
 });
 
