@@ -11,9 +11,4 @@ services:
         sync: false
       - key: EMAIL_PASS
         sync: false
-      - key: PORT
-        fromService:
-          type: web
-          name: email-api
-          property: port
 
