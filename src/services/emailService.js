@@ -11,6 +11,11 @@ const transporter = require("../config/email");
  * @returns {Promise} Send mail promise
  */
 async function sendEmail({ to, subject, text, html, from }) {
+  // Check credentials before sending
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    throw new Error("Email service not configured. EMAIL_USER and EMAIL_PASS must be set.");
+  }
+
   const mailOptions = {
     from: from || `"Vikas V" <${process.env.EMAIL_USER}>`,
     to,
@@ -60,6 +65,11 @@ async function sendBulkEmails(recipients, emailData) {
  * @returns {Promise} Send mail promise
  */
 async function sendRegistrationEmail(user) {
+  // Check credentials before sending
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    throw new Error("Email service not configured. EMAIL_USER and EMAIL_PASS must be set in Render environment variables.");
+  }
+
   const { name, email, CompanyName, MobileNumber, Password } = user;
 
   const mailOptions = {

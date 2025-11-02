@@ -69,7 +69,21 @@ async function sendEmail(req, res) {
  */
 async function registerUser(req, res) {
   try {
-    const { name, email, CompanyName, MobileNumber, Password } = req.body;
+    // Accept both camelCase and PascalCase for flexibility
+    const { 
+      name, 
+      email, 
+      CompanyName, 
+      companyName, 
+      MobileNumber, 
+      mobileNumber,
+      Password,
+      password 
+    } = req.body;
+
+    const finalCompanyName = CompanyName || companyName;
+    const finalMobileNumber = MobileNumber || mobileNumber;
+    const finalPassword = Password || password;
 
     if (!name || !email) {
       return res.status(400).json({
@@ -83,9 +97,9 @@ async function registerUser(req, res) {
     await emailService.sendRegistrationEmail({
       name,
       email,
-      CompanyName,
-      MobileNumber,
-      Password,
+      CompanyName: finalCompanyName,
+      MobileNumber: finalMobileNumber,
+      Password: finalPassword,
     });
 
     res.json({
@@ -93,8 +107,8 @@ async function registerUser(req, res) {
       user: {
         name,
         email,
-        CompanyName,
-        MobileNumber,
+        CompanyName: finalCompanyName,
+        MobileNumber: finalMobileNumber,
       },
     });
   } catch (error) {

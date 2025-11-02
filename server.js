@@ -1,7 +1,17 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const routes = require("./src/routes");
+
+// Try to load routes - if it fails, log error but don't crash
+let routes;
+try {
+  routes = require("./src/routes");
+  console.log("✅ Routes module loaded successfully");
+} catch (error) {
+  console.error("❌ ERROR loading routes module:", error);
+  console.error("Stack:", error.stack);
+  process.exit(1);
+}
 
 const app = express();
 
@@ -9,8 +19,12 @@ const app = express();
 app.use(cors({
   origin: "*",
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  credentials: false,
 }));
+
+// Handle preflight OPTIONS requests
+app.options("*", cors());
 
 // Body parser middleware
 app.use(express.json());
@@ -19,11 +33,20 @@ app.use(express.urlencoded({ extended: true }));
 // Logging middleware for debugging
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  console.log("Headers:", JSON.stringify(req.headers));
   next();
 });
 
-// API routes
+// API routes - NO AUTHENTICATION REQUIRED
 app.use("/api", routes);
+
+// Verify routes are loaded
+console.log("✅ Routes loaded successfully");
+console.log("Available endpoints:");
+console.log("  GET  /api");
+console.log("  POST /api/email/send-email");
+console.log("  POST /api/email/send-single-email");
+console.log("  POST /api/email/register");
 
 // Root route
 app.get("/", (req, res) => {
@@ -50,7 +73,26 @@ app.use((req, res) => {
 
 // Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`API available at http://localhost:${PORT}/api`);
+
+// Handle server errors
+const server = app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
+  console.log(`✅ API available at http://localhost:${PORT}/api`);
+  console.log(`✅ Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`✅ EMAIL_USER set: ${!!process.env.EMAIL_USER}`);
+  console.log(`✅ EMAIL_PASS set: ${!!process.env.EMAIL_PASS}`);
+});
+
+// Handle server errors
+server.on('error', (error) => {
+  console.error('❌ Server error:', error);
+  process.exit(1);
+});
+
+// Handle process termination
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  server.close(() => {
+    console.log('Process terminated');
+  });
 });
