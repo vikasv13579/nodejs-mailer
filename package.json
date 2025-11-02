@@ -1,12 +1,15 @@
 {
   "name": "email-project",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Email API service for sending emails and handling registrations",
+  "main": "server.js",
   "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "send-bulk": "node scripts/send-bulk-emails.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": ["email", "api", "nodemailer", "express"],
   "author": "",
   "license": "ISC",
   "dependencies": {
