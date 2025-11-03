@@ -10,10 +10,11 @@ const transporter = require("../config/email");
  * @param {string} [options.from] - Sender email (defaults to env EMAIL_USER)
  * @returns {Promise} Send mail promise
  */
-async function sendEmail({ to, subject, text, html, from }) {
-  // Check credentials before sending
+async function sendEmail({ to, subject, text, html, from, attachments }) {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    throw new Error("Email service not configured. EMAIL_USER and EMAIL_PASS must be set.");
+    throw new Error(
+      "Email service not configured. EMAIL_USER and EMAIL_PASS must be set."
+    );
   }
 
   const mailOptions = {
@@ -22,6 +23,7 @@ async function sendEmail({ to, subject, text, html, from }) {
     subject: subject || "No Subject",
     text: text || "",
     html: html || "",
+    attachments: attachments || [], // ✅ Add this line
   };
 
   return await transporter.sendMail(mailOptions);
@@ -67,7 +69,10 @@ async function sendBulkEmails(recipients, emailData) {
 async function sendRegistrationEmail(user) {
   // Check credentials before sending
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    throw new Error("Email service not configured. EMAIL_USER and EMAIL_PASS must be set in Render environment variables.");
+    throw new Error(
+      "Email service not configured. EMAIL_USER and EMAIL_PASS must be set. " +
+        "NOTE: Render free tier blocks SMTP connections. Gmail SMTP will only work locally or on paid Render plans."
+    );
   }
 
   const { name, email, CompanyName, MobileNumber, Password } = user;
